@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const refreshBtn = document.getElementById('btn-refresh');
     const exportBtn = document.getElementById('btn-export');
+    const themeBtn = document.getElementById('btn-theme');
     const syncTimeSpan = document.getElementById('sync-time');
     const filterTagsContainer = document.getElementById('filter-tags');
     
@@ -23,10 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const presetHashtagsContainer = document.getElementById('preset-hashtags');
     const previewLinkLabel = document.getElementById('preview-link-label');
 
+    // Initialize Theme
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-theme');
+    }
+
     // Event Listeners
     refreshBtn.addEventListener('click', () => fetchNotes(true));
     if (exportBtn) {
         exportBtn.addEventListener('click', handleExportCSV);
+    }
+    if (themeBtn) {
+        themeBtn.addEventListener('click', toggleTheme);
     }
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
@@ -464,6 +474,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    /**
+     * Swaps the page color scheme between dark and light themes
+     */
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
 
     /**

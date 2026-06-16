@@ -18,6 +18,7 @@
     --color-surface-border: rgba(255, 255, 255, 0.06);
     --color-surface-hover: rgba(26, 36, 61, 0.8);
     --color-card-selected: rgba(26, 115, 232, 0.12);
+    --color-header-bg: rgba(11, 16, 27, 0.8);
     
     --color-primary: #1a73e8;
     --color-primary-hover: #1557b0;
@@ -26,6 +27,9 @@
     --color-text-main: #f3f4f6;
     --color-text-muted: #9ca3af;
     --color-text-dimmed: #6b7280;
+
+    --color-gradient-1: rgba(26, 115, 232, 0.15);
+    --color-gradient-2: rgba(139, 92, 246, 0.1);
 
     /* Category Badges */
     --color-badge-feature: #3b82f6;
@@ -50,6 +54,30 @@
     --border-radius-sm: 6px;
 }
 
+body.light-theme {
+    --color-bg: #f5f7fa;
+    --color-surface-bg: rgba(255, 255, 255, 0.85);
+    --color-surface-border: rgba(0, 0, 0, 0.08);
+    --color-surface-hover: rgba(255, 255, 255, 0.95);
+    --color-card-selected: rgba(26, 115, 232, 0.08);
+    --color-header-bg: rgba(245, 247, 250, 0.8);
+    
+    --color-primary: #1a73e8;
+    --color-primary-hover: #1557b0;
+    --color-accent: #0288d1;
+    
+    --color-text-main: #1f2937;
+    --color-text-muted: #4b5563;
+    --color-text-dimmed: #6b7280;
+
+    --color-gradient-1: rgba(26, 115, 232, 0.06);
+    --color-gradient-2: rgba(139, 92, 246, 0.04);
+    
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--color-bg);
@@ -59,6 +87,7 @@ body {
     flex-direction: column;
     overflow-x: hidden;
     position: relative;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Background Gradients */
@@ -69,9 +98,10 @@ body::before {
     left: 10%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(26, 115, 232, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    background: radial-gradient(circle, var(--color-gradient-1) 0%, transparent 70%);
     z-index: -1;
     pointer-events: none;
+    transition: background 0.3s ease;
 }
 
 body::after {
@@ -81,20 +111,36 @@ body::after {
     right: 5%;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+    background: radial-gradient(circle, var(--color-gradient-2) 0%, transparent 70%);
     z-index: -1;
     pointer-events: none;
+    transition: background 0.3s ease;
+}
+
+/* Sun / Moon icons theme toggler state */
+body.light-theme .icon-sun {
+    display: none;
+}
+body.light-theme .icon-moon {
+    display: block;
+}
+body:not(.light-theme) .icon-sun {
+    display: block;
+}
+body:not(.light-theme) .icon-moon {
+    display: none;
 }
 
 /* Header & Navigation */
 header {
-    background: rgba(11, 16, 27, 0.8);
+    background: var(--color-header-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--color-surface-border);
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .header-container {
