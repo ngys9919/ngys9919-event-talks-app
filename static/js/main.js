@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const notesListContainer = document.getElementById('notes-list');
     const searchInput = document.getElementById('search-input');
     const refreshBtn = document.getElementById('btn-refresh');
+    const exportBtn = document.getElementById('btn-export');
     const syncTimeSpan = document.getElementById('sync-time');
     const filterTagsContainer = document.getElementById('filter-tags');
     
@@ -24,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners
     refreshBtn.addEventListener('click', () => fetchNotes(true));
+    if (exportBtn) {
+        exportBtn.addEventListener('click', handleExportCSV);
+    }
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
         renderNotes();
@@ -231,12 +235,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${note.content_html}
                 </div>
                 <div class="note-footer">
+                    <button class="source-link btn-copy" data-id="${note.id}" onclick="event.stopPropagation();" style="background: none; border: none; font-family: inherit; font-size: inherit; cursor: pointer; padding: 0;">
+                        <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: currentColor;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        <span class="copy-text">Copy Text</span>
+                    </button>
                     <a href="${escapeHTML(note.link)}" target="_blank" rel="noopener noreferrer" class="source-link" onclick="event.stopPropagation();">
                         <span>Source Doc</span>
                         <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
                     </a>
                 </div>
             `;
+
+            // Bind Copy button action
+            const copyBtn = card.querySelector('.btn-copy');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent card selection
+                    navigator.clipboard.writeText(note.content_text).then(() => {
+                        const copySpan = copyBtn.querySelector('.copy-text');
+                        const originalText = copySpan.textContent;
+                        copySpan.textContent = 'Copied!';
+                        copyBtn.style.color = 'var(--color-badge-change)'; // Green check feedback
+                        setTimeout(() => {
+                            copySpan.textContent = originalText;
+                            copyBtn.style.color = '';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+                });
+            }
 
             // Card Click Handler
             card.addEventListener('click', () => selectNote(note));
@@ -394,6 +422,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
         window.open(tweetUrl, '_blank', 'noopener,noreferrer,width=550,height=420');
+    }
+
+    /**
+     * Exports the currently filtered release notes to a CSV file download
+     */
+    function handleExportCSV() {
+        let filteredNotes = releaseNotes.filter(note => {
+            const matchesCategory = activeFilter === 'all' || note.type.toLowerCase() === activeFilter;
+            const matchesSearch = !searchQuery || 
+                note.content_text.toLowerCase().includes(searchQuery) || 
+                note.date.toLowerCase().includes(searchQuery) ||
+                note.type.toLowerCase().includes(searchQuery);
+            return matchesCategory && matchesSearch;
+        });
+
+        if (filteredNotes.length === 0) {
+            alert("No notes available to export.");
+            return;
+        }
+
+        const headers = ["ID", "Date", "Type", "Link", "Content"];
+        const rows = filteredNotes.map(note => [
+            note.id,
+            note.date,
+            note.type,
+            note.link,
+            note.content_text
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`));
+
+        const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        const filterName = activeFilter === 'all' ? 'all' : activeFilter;
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.setAttribute("download", `bq_release_notes_${filterName}_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     /**
